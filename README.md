@@ -48,9 +48,33 @@ The behavioral question is whether recent error history changes human takeover d
 
 ---
 
+## Repository Organization
+
+The repository contains the PS1 paper source and a technical companion for the computational and interactive components.
+
+```text
+PS1_Lin/
+├── companion/
+│   ├── README.md
+│   ├── requirements.txt
+│   ├── notebooks/
+│   │   └── takeover_boundary_analysis.ipynb
+│   ├── outputs/
+│   │   ├── economic_boundary.png
+│   │   └── synthetic_takeover_boundaries.png
+│   └── hf_space/
+│       ├── README.md
+│       └── index.html
+└── README.md
+```
+
+The computational notebook, dependencies, actual outputs, Hugging Face source files, and reproduction instructions are documented in `companion/`.
+
+---
+
 ## Computational Analysis
 
-The notebook [`takeover_boundary_analysis.ipynb`](takeover_boundary_analysis.ipynb) implements the computational part of the proposal.
+The notebook [`companion/notebooks/takeover_boundary_analysis.ipynb`](takeover_boundary_analysis.ipynb) implements the computational part of the proposal.
 
 It performs four main steps:
 
