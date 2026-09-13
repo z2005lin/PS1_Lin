@@ -74,7 +74,7 @@ The computational notebook, dependencies, actual outputs, Hugging Face source fi
 
 ## Computational Analysis
 
-The notebook [`companion/notebooks/takeover_boundary_analysis.ipynb`](takeover_boundary_analysis.ipynb) implements the computational part of the proposal.
+The notebook `companion/notebooks/takeover_boundary_analysis.ipynb` implements the computational part of the proposal.
 
 It performs four main steps:
 
