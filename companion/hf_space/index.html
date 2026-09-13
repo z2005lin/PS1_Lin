@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trust or Take Over?</title>
+  <style>
+    :root {
+      --bg:#f7f8fb; --panel:#fff; --ink:#1f2937; --muted:#6b7280;
+      --line:#d1d5db; --blue:#315efb; --teal:#14877d;
+      --soft-blue:#eef3ff; --soft-teal:#eaf7f5; --soft-red:#fff1f2;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; }
+    main { max-width:920px; margin:0 auto; padding:28px 18px 48px; }
+    header { margin-bottom:18px; }
+    h1 { margin:0 0 8px; font-size:32px; letter-spacing:-.02em; }
+    h2,h3 { margin:0 0 10px; }
+    h2 { font-size:22px; } h3 { font-size:17px; }
+    .subtitle,.small,.footer-note { color:var(--muted); }
+    .subtitle { max-width:760px; margin:0; }
+    .layout { display:grid; grid-template-columns:1.15fr .85fr; gap:18px; }
+    @media (max-width:760px){ .layout{grid-template-columns:1fr;} }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 6px 18px rgba(31,41,55,.06); }
+    .scenario-head { display:flex; justify-content:space-between; gap:12px; align-items:start; margin-bottom:14px; }
+    .badge { display:inline-block; padding:4px 10px; border-radius:999px; background:var(--soft-blue); color:var(--blue); font-weight:700; font-size:13px; white-space:nowrap; }
+    .history-error { background:var(--soft-red); color:#be123c; }
+    .history-clear { background:var(--soft-teal); color:var(--teal); }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0; }
+    .metric { border:1px solid var(--line); border-radius:12px; padding:12px; background:#fbfdff; }
+    .metric .label { color:var(--muted); font-size:13px; margin-bottom:3px; }
+    .metric .value { font-size:22px; font-weight:700; }
+    .rules { margin:0; padding-left:20px; }
+    .rules li { margin-bottom:9px; }
+    .note { background:#f3f4f6; border-left:4px solid var(--blue); padding:12px 14px; border-radius:8px; margin:14px 0; }
+    .choice-row { display:flex; gap:12px; margin-top:16px; }
+    button { border:0; border-radius:12px; padding:12px 16px; font-size:15px; font-weight:700; cursor:pointer; }
+    .primary { background:var(--blue); color:#fff; }
+    .secondary { background:var(--teal); color:#fff; }
+    .plain { background:#e5e7eb; color:var(--ink); margin-right:8px; margin-bottom:8px; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .bar { height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin-top:16px; }
+    .fill { height:100%; background:var(--blue); width:0%; transition:width .2s ease; }
+    .small { font-size:13px; }
+    .results { display:none; margin-top:18px; }
+    .formula { background:#f3f4f6; border-left:4px solid var(--blue); padding:12px 14px; border-radius:8px; margin:12px 0; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:14px; }
+    table { width:100%; border-collapse:collapse; font-size:14px; margin-top:10px; }
+    th,td { border-bottom:1px solid var(--line); padding:8px 6px; text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-weight:700; }
+    .analysis-block { margin-top:16px; padding-top:2px; }
+    .footer-note { margin-top:18px; font-size:13px; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Trust or Take Over?</h1>
+    <p class="subtitle">You supervise an automated industrial vehicle. Make eight independent control decisions using the information shown in each scenario.</p>
+  </header>
+
+  <div class="layout" id="gameLayout">
+    <section class="card" aria-labelledby="scenarioTitle">
+      <div class="scenario-head">
+        <div>
+          <span id="counter" class="badge">Scenario 1 of 8</span>
+          <h2 id="scenarioTitle" style="margin-top:10px;">Industrial vehicle supervision</h2>
+        </div>
+        <span id="historyBadge" class="badge">Recent history</span>
+      </div>
+
+      <p id="scenarioText"></p>
+
+      <div class="grid" aria-label="Scenario values">
+        <div class="metric"><div class="label">Current reliability p</div><div id="pValue" class="value"></div></div>
+        <div class="metric"><div class="label">Failure loss L</div><div id="lValue" class="value"></div></div>
+        <div class="metric"><div class="label">Takeover cost C</div><div id="cValue" class="value"></div></div>
+      </div>
+
+      <p><strong>Decision</strong><br />Which action would you choose for this scenario?</p>
+      <div class="choice-row">
+        <button class="primary" id="autoBtn">Keep Auto</button>
+        <button class="secondary" id="takeBtn">Take Over</button>
+      </div>
+    </section>
+
+    <aside class="card" aria-labelledby="rulesTitle">
+      <h2 id="rulesTitle">How to play</h2>
+      <ul class="rules">
+        <li>You will make <strong>8 independent decisions</strong>.</li>
+        <li><strong>Reliability p</strong> is the current probability that automation succeeds.</li>
+        <li><strong>Failure loss L</strong> is the loss if automation fails.</li>
+        <li><strong>Takeover cost C</strong> is the cost of switching to human control.</li>
+        <li>The recent event is shown as part of the scenario. Treat the displayed <strong>p, L, and C as current and valid</strong> for that decision.</li>
+        <li>Choose the action you would actually take. There is no feedback until all 8 decisions are complete.</li>
+      </ul>
+      <div class="note"><strong>Important</strong><br />Do not calculate a hidden rule or try to match a target answer. Use the information shown and make your own choice.</div>
+      <div class="bar" aria-hidden="true"><div id="progressFill" class="fill"></div></div>
+      <p id="progressText" class="small">0 of 8 decisions completed.</p>
+    </aside>
+  </div>
+
+  <section class="card results" id="results">
+    <h2>Session analysis</h2>
+    <p>You have completed all eight decisions. The economic benchmark and matched-scenario comparison are shown only now so they could not influence later choices.</p>
+
+    <div class="analysis-block">
+      <h3>1. Economic benchmark</h3>
+      <p>Keeping automation has expected cost <strong>(1 − p)L</strong>. Taking over has cost <strong>C</strong>. The cost-minimizing benchmark chooses the lower cost.</p>
+      <div class="formula">Take over if C &lt; (1 − p)L &nbsp;&nbsp; | &nbsp;&nbsp; p* = 1 − C/L = <span id="thresholdText"></span></div>
+    </div>
+
+    <div class="grid">
+      <div class="metric"><div class="label">Benchmark agreement</div><div id="agreeRate" class="value"></div></div>
+      <div class="metric"><div class="label">Takeover after error</div><div id="errorRate" class="value"></div></div>
+      <div class="metric"><div class="label">Takeover after no error</div><div id="clearRate" class="value"></div></div>
+    </div>
+
+    <div class="analysis-block">
+      <h3>2. Matched-history comparison</h3>
+      <p id="summaryText"></p>
+      <p id="switchText"></p>
+      <table aria-label="Matched pair comparison">
+        <thead><tr><th>Reliability</th><th>Benchmark</th><th>After error</th><th>After no error</th><th>History changed choice?</th></tr></thead>
+        <tbody id="pairRows"></tbody>
+      </table>
+    </div>
+
+    <div class="analysis-block">
+      <h3>3. Decision record</h3>
+      <table aria-label="Choice results">
+        <thead><tr><th>#</th><th>p</th><th>History</th><th>Auto cost</th><th>Benchmark</th><th>Your choice</th><th>Match</th></tr></thead>
+        <tbody id="resultRows"></tbody>
+      </table>
+    </div>
+
+    <p class="footer-note">This page describes one play session. It does not establish a population-level behavioral effect. Research conclusions require choices from multiple participants under a controlled design.</p>
+    <button class="plain" id="downloadBtn">Download choices as JSON</button>
+    <button class="plain" id="resetBtn">Play again</button>
+  </section>
+</main>
+
+<script>
+  const L = 100;
+  const C = 20;
+
+  // Fixed non-adjacent ordering prevents each matched pair from appearing back-to-back.
+  const scenarios = [
+    { id:1, pair:1, p:0.72, history:'error' },
+    { id:2, pair:3, p:0.82, history:'no_error' },
+    { id:3, pair:4, p:0.88, history:'error' },
+    { id:4, pair:2, p:0.78, history:'no_error' },
+    { id:5, pair:1, p:0.72, history:'no_error' },
+    { id:6, pair:4, p:0.88, history:'no_error' },
+    { id:7, pair:3, p:0.82, history:'error' },
+    { id:8, pair:2, p:0.78, history:'error' }
+  ];
+
+  const state = { index:0, choices:[] };
+  const pStar = 1 - C / L;
+
+  function benchmark(p){
+    const autoCost = (1-p)*L;
+    if (C < autoCost) return 'Take Over';
+    if (C > autoCost) return 'Keep Auto';
+    return 'Either';
+  }
+  function pct(x){ return Math.round(x*100)+'%'; }
+
+  function renderScenario(){
+    const s = scenarios[state.index];
+    document.getElementById('counter').textContent = `Scenario ${state.index+1} of ${scenarios.length}`;
+    document.getElementById('pValue').textContent = pct(s.p);
+    document.getElementById('lValue').textContent = L;
+    document.getElementById('cValue').textContent = C;
+
+    const badge = document.getElementById('historyBadge');
+    if(s.history==='error'){
+      badge.textContent='Recent Error';
+      badge.className='badge history-error';
+      document.getElementById('scenarioText').textContent='The vehicle recently made an automation error. The values below are the current information available for this decision.';
+    } else {
+      badge.textContent='No Recent Error';
+      badge.className='badge history-clear';
+      document.getElementById('scenarioText').textContent='The vehicle recently completed operation without an automation error. The values below are the current information available for this decision.';
+    }
+    document.getElementById('autoBtn').disabled=false;
+    document.getElementById('takeBtn').disabled=false;
+    updateProgress();
+  }
+
+  function choose(choice){
+    const s = scenarios[state.index];
+    const autoCost=(1-s.p)*L;
+    const b=benchmark(s.p);
+    const match=b==='Either' || choice===b;
+    state.choices.push({...s,L,C,pStar,autoCost,benchmark:b,choice,match});
+
+    document.getElementById('autoBtn').disabled=true;
+    document.getElementById('takeBtn').disabled=true;
+
+    // No benchmark or correctness feedback during play.
+    setTimeout(()=>{
+      state.index += 1;
+      if(state.index < scenarios.length) renderScenario();
+      else renderResults();
+    },250);
+  }
+
+  function updateProgress(){
+    const done=state.choices.length;
+    document.getElementById('progressFill').style.width=`${(done/scenarios.length)*100}%`;
+    document.getElementById('progressText').textContent=`${done} of ${scenarios.length} decisions completed.`;
+  }
+
+  function rate(items,predicate){
+    if(!items.length) return 0;
+    return items.filter(predicate).length/items.length;
+  }
+
+  function renderResults(){
+    updateProgress();
+    document.getElementById('gameLayout').style.display='none';
+    const results=document.getElementById('results');
+    results.style.display='block';
+
+    const choices=state.choices;
+    const agree=rate(choices,x=>x.match);
+    const error=choices.filter(x=>x.history==='error');
+    const clear=choices.filter(x=>x.history==='no_error');
+    const errorTake=rate(error,x=>x.choice==='Take Over');
+    const clearTake=rate(clear,x=>x.choice==='Take Over');
+    const diff=errorTake-clearTake;
+
+    document.getElementById('thresholdText').textContent=pct(pStar);
+    document.getElementById('agreeRate').textContent=pct(agree);
+    document.getElementById('errorRate').textContent=pct(errorTake);
+    document.getElementById('clearRate').textContent=pct(clearTake);
+
+    document.getElementById('summaryText').textContent =
+      `In this session, takeover occurred ${Math.round(diff*100)} percentage points more often after recent errors than after no recent error. Positive values indicate more takeover after error; negative values indicate less.`;
+
+    const pairData=[1,2,3,4].map(pair=>{
+      const items=choices.filter(x=>x.pair===pair);
+      const e=items.find(x=>x.history==='error');
+      const n=items.find(x=>x.history==='no_error');
+      return { pair, p:e.p, benchmark:e.benchmark, errorChoice:e.choice, noErrorChoice:n.choice, switched:e.choice!==n.choice };
+    }).sort((a,b)=>a.p-b.p);
+
+    const switches=pairData.filter(x=>x.switched).length;
+    document.getElementById('switchText').textContent =
+      `${switches} of 4 matched pairs received different choices across the two recent-history conditions.`;
+
+    document.getElementById('pairRows').innerHTML=pairData.map(x=>`
+      <tr>
+        <td>${pct(x.p)}</td>
+        <td>${x.benchmark}</td>
+        <td>${x.errorChoice}</td>
+        <td>${x.noErrorChoice}</td>
+        <td>${x.switched?'Yes':'No'}</td>
+      </tr>`).join('');
+
+    document.getElementById('resultRows').innerHTML=choices.map((x,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td>${pct(x.p)}</td>
+        <td>${x.history==='error'?'Error':'No error'}</td>
+        <td>${x.autoCost.toFixed(0)}</td>
+        <td>${x.benchmark}</td>
+        <td>${x.choice}</td>
+        <td>${x.match?'Yes':'No'}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('autoBtn').addEventListener('click',()=>choose('Keep Auto'));
+  document.getElementById('takeBtn').addEventListener('click',()=>choose('Take Over'));
+  document.getElementById('resetBtn').addEventListener('click',()=>location.reload());
+  document.getElementById('downloadBtn').addEventListener('click',()=>{
+    const data=JSON.stringify({generated_at:new Date().toISOString(), p_star:pStar, choices:state.choices},null,2);
+    const blob=new Blob([data],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='trust-or-takeover-choices.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  renderScenario();
+</script>
+</body>
+</html>
