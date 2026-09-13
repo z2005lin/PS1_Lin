@@ -2,7 +2,7 @@
 
 ## Recent Errors and Authority under Imperfect Automation
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/z2005lin/PS1_Lin/blob/main/takeover_boundary_analysis.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1mM6bZV-yfjKA-C0pycUg5f_y0gOGNzTO?usp=sharing)
 
 This repository contains the research proposal, computational analysis, and supporting materials for my COMSCI/ECON 206 PS1 project.
 
