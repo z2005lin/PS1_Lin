@@ -1,0 +1,7 @@
+# Computational Analysis
+
+This directory contains the reproducible computational materials for the PS1 project:
+
+**When Should Humans Take Over? Recent Errors and Authority under Imperfect Automation**
+
+The analysis implements the expected-cost takeover benchmark and a synthetic computational check for comparing takeover boundaries across recent-history conditions.
