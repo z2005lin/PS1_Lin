@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stay in the Loop</title>
+<style>
+:root{--ink:#17324d;--muted:#64778a;--line:#d6e0e8;--bg:#f5f8fb;--blue:#315efb;--teal:#16857b;--orange:#d97745;--red:#b42318;--green:#067647}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1000px;margin:auto;padding:32px 18px 60px}
+h1{font-size:34px;margin:0 0 5px} h2{font-size:22px;margin:0 0 12px} h3{margin:0 0 8px}
+p{line-height:1.55}.subtitle{color:var(--muted);margin:0 0 22px}
+.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin:14px 0}
+.hidden{display:none!important}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px 16px;background:#fff;color:var(--ink);font-weight:750}
+button:hover{transform:translateY(-1px)} button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.primary{background:var(--ink);color:white;border-color:var(--ink)}
+.riskrow,.actions,.bottomrow{display:flex;gap:12px;flex-wrap:wrap}
+.risk{flex:1;min-width:250px;text-align:left;padding:18px}.risk strong{display:block;font-size:20px;margin-bottom:5px}
+.low{border:2px solid var(--blue)}.high{border:2px solid var(--orange)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.metric{background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px}
+.metric span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.metric b{display:block;font-size:21px;margin-top:5px}
+.bar{height:14px;background:#e6edf3;border-radius:99px;overflow:hidden;margin:12px 0}.fill{height:100%;background:var(--teal);transition:width .25s}
+.status{padding:16px;border-radius:12px;margin:14px 0;font-weight:700}
+.available{background:#eef6ff;border:1px solid #bfd5ff}.emergency{background:#fff1f0;border:2px solid #f3b5ae;color:#7a271a}
+.action{flex:1;min-width:290px;padding:18px;text-align:left}.auto{border:2px solid var(--blue)}.manual{border:2px solid var(--teal)}
+.big{font-size:22px;font-weight:850}.next{font-weight:700}
+.outcome{padding:18px;border-radius:12px;margin-top:14px}.success{background:#ecfdf3;border:1px solid #abefc6;color:#05603a}.failure{background:#fff1f0;border:1px solid #fecdca;color:#912018}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px;border-bottom:1px solid #e8edf2;text-align:left}th{color:var(--muted)}
+.formula{text-align:center;font-family:Georgia,serif;font-size:18px;margin:14px 0}
+.small{font-size:13px;color:var(--muted)}.note{border-left:4px solid var(--orange);padding:11px 14px;background:#fff8f2}
+@media(max-width:780px){.stats{grid-template-columns:1fr 1fr}.action{min-width:100%}}
+</style>
+</head>
+<body>
+<main>
+<h1>Stay in the Loop</h1>
+<p class="subtitle">Automation is better now. But will you still be ready when it disappears?</p>
+
+<section id="intro" class="card">
+<h2>Mission</h2>
+<p>You supervise an automated vehicle for <b>12 rounds</b>. Automation succeeds 95% of the time, but your manual capability falls when you stop practicing. In every round, automation may suddenly become unavailable. If that happens, you must take control yourself.</p>
+<p><b>Goal: finish with the lowest total loss.</b> A failure costs <b>100 points</b>. Success costs 0.</p>
+<div class="formula">Use automation now &nbsp; ↔ &nbsp; preserve human backup capability for later</div>
+<h2>Choose an environment</h2>
+<div class="riskrow">
+<button class="risk low" onclick="startGame(.10)"><strong>LOW EMERGENCY RISK</strong>10% chance automation is unavailable in each round</button>
+<button class="risk high" onclick="startGame(.30)"><strong>HIGH EMERGENCY RISK</strong>30% chance automation is unavailable in each round</button>
+</div>
+<p class="small">All other model parameters are identical. Try both conditions.</p>
+</section>
+
+<section id="game" class="hidden">
+<div class="stats">
+<div class="metric"><span>Round</span><b id="round">1 / 12</b></div>
+<div class="metric"><span>Emergency risk</span><b id="risk">10%</b></div>
+<div class="metric"><span>Manual capability</span><b id="skill">88%</b></div>
+<div class="metric"><span>Total realized loss</span><b id="loss">0</b></div>
+<div class="metric"><span>Emergencies so far</span><b id="emCount">0</b></div>
+</div>
+
+<div class="card">
+<div class="bar"><div id="skillbar" class="fill"></div></div>
+<div id="status" class="status"></div>
+
+<div id="choicePanel" class="actions">
+<button class="action auto" onclick="choose('A')">
+<h3>USE AUTOMATION</h3>
+<p>Success chance: <span class="big">95%</span></p>
+<p>If failure: <b>+100 loss</b></p>
+<p class="next">Manual capability next round: <span id="autoNext"></span></p>
+</button>
+<button class="action manual" onclick="choose('H')">
+<h3>PRACTICE MANUAL</h3>
+<p>Success chance: <span id="manualChance" class="big"></span></p>
+<p>If failure: <b>+100 loss</b></p>
+<p class="next">Manual capability next round: <span id="manualNext"></span></p>
+</button>
+</div>
+
+<div id="forcedPanel" class="hidden">
+<p>You cannot use automation. This round uses your current manual capability of <b id="forcedSkill"></b>.</p>
+<button class="primary" onclick="choose('F')">Take Manual Control</button>
+</div>
+
+<div id="outcome" class="hidden"></div>
+<button id="nextButton" class="primary hidden" onclick="nextRound()">Next round</button>
+</div>
+
+<div class="card">
+<h3>History</h3>
+<table>
+<thead><tr><th>Round</th><th>Automation</th><th>Capability</th><th>Action</th><th>Outcome</th><th>Loss</th></tr></thead>
+<tbody id="history"></tbody>
+</table>
+</div>
+</section>
+
+<section id="results" class="card hidden">
+<h2>Results</h2>
+<div class="stats">
+<div class="metric"><span>Realized loss</span><b id="rLoss"></b></div>
+<div class="metric"><span>Voluntary manual practice</span><b id="rManual"></b></div>
+<div class="metric"><span>Emergencies</span><b id="rEmergencies"></b></div>
+<div class="metric"><span>Emergency failures</span><b id="rEmergencyFailures"></b></div>
+<div class="metric"><span>Final capability</span><b id="rSkill"></b></div>
+</div>
+
+<div class="card">
+<h3>Your voluntary policy vs. dynamic benchmark</h3>
+<table>
+<thead><tr><th></th><th>Your policy</th><th>Dynamic benchmark</th></tr></thead>
+<tbody>
+<tr><td>Voluntary manual-practice rounds*</td><td id="youManual"></td><td id="optManual"></td></tr>
+<tr><td>Expected cumulative loss</td><td id="youExpected"></td><td id="optExpected"></td></tr>
+<tr><td>First-round recommendation</td><td id="youFirst"></td><td id="optFirst"></td></tr>
+</tbody>
+</table>
+<p class="small">*For your policy, this counts the manual choices you made when automation was available. The benchmark value is the expected number of voluntary manual choices across possible future emergency paths.</p>
+</div>
+
+<div id="interpretation" class="note"></div>
+<p><b>Important:</b> realized loss depends on luck. A lower realized loss does not prove that a policy is better. The dynamic benchmark minimizes <b>expected</b> cumulative loss before future emergencies and outcomes are known.</p>
+<div class="formula">q ↑ &nbsp; ⇒ &nbsp; future backup value ↑ &nbsp; ⇒ &nbsp; optimal manual practice may ↑</div>
+<div class="bottomrow">
+<button class="primary" onclick="startGame(q===.10?.30:.10)">Replay under the other risk</button>
+<button onclick="resetGame()">Back to start</button>
+</div>
+</section>
+</main>
+
+<script>
+const T=12, pA=.95, L=100, delta=1.0;
+const s0=.88, decay=.04, recovery=.04, sMin=.56, sMax=.92;
+let q=.10, t=1, s=s0, totalLoss=0, emergencies=0, emergencyFailures=0;
+let voluntaryManual=0, available=true, waiting=false, history=[], voluntaryPolicy={};
+
+const $=id=>document.getElementById(id);
+const r2=x=>Math.round((x+Number.EPSILON)*100)/100;
+const clamp=x=>Math.min(sMax,Math.max(sMin,x));
+const pct=x=>`${Math.round(x*100)}%`;
+const nextSkill=(skill,a)=>r2(clamp(skill+(a==="H"||a==="F"?recovery:-decay)));
+const expectedImmediate=(skill,a)=>(1-(a==="A"?pA:skill))*L;
+
+function startGame(risk){
+  q=risk;t=1;s=s0;totalLoss=0;emergencies=0;emergencyFailures=0;
+  voluntaryManual=0;waiting=false;history=[];voluntaryPolicy={};
+  $("intro").classList.add("hidden");$("results").classList.add("hidden");
+  $("game").classList.remove("hidden");$("history").innerHTML="";
+  drawAvailability();render();
+}
+
+function drawAvailability(){
+  available=Math.random()>=q;
+  if(!available) emergencies++;
+}
+
+function render(){
+  $("round").textContent=`${t} / ${T}`;
+  $("risk").textContent=pct(q);
+  $("skill").textContent=pct(s);
+  $("loss").textContent=totalLoss;
+  $("emCount").textContent=emergencies;
+  $("skillbar").style.width=pct(s);
+  $("autoNext").textContent=pct(nextSkill(s,"A"));
+  $("manualNext").textContent=pct(nextSkill(s,"H"));
+  $("manualChance").textContent=pct(s);
+  $("forcedSkill").textContent=pct(s);
+  $("outcome").classList.add("hidden");
+  $("nextButton").classList.add("hidden");
+  waiting=false;
+
+  if(available){
+    $("status").className="status available";
+    $("status").innerHTML="<b>AUTOMATION AVAILABLE.</b> Choose today's control.";
+    $("choicePanel").classList.remove("hidden");
+    $("forcedPanel").classList.add("hidden");
+  }else{
+    $("status").className="status emergency";
+    $("status").innerHTML="<b>EMERGENCY — AUTOMATION UNAVAILABLE.</b> Manual control is required.";
+    $("choicePanel").classList.add("hidden");
+    $("forcedPanel").classList.remove("hidden");
+  }
+}
+
+function choose(a){
+  if(waiting)return;
+  if(!available)a="F";
+  waiting=true;
+
+  const before=s;
+  const actualAction=a==="A"?"A":"H";
+  const successProb=actualAction==="A"?pA:s;
+  const success=Math.random()<successProb;
+  const roundLoss=success?0:L;
+  totalLoss+=roundLoss;
+
+  if(available){
+    voluntaryPolicy[t]=actualAction;
+    if(actualAction==="H") voluntaryManual++;
+  }else if(!success){
+    emergencyFailures++;
+  }
+
+  s=nextSkill(s,a);
+
+  const actionLabel=!available?"Forced Manual":actualAction==="A"?"Automation":"Manual Practice";
+  history.push({t,available,before,action:actualAction,label:actionLabel,success,loss:roundLoss});
+  addHistory(history[history.length-1]);
+
+  $("choicePanel").classList.add("hidden");
+  $("forcedPanel").classList.add("hidden");
+  $("outcome").classList.remove("hidden");
+  $("outcome").className=`outcome ${success?"success":"failure"}`;
+  $("outcome").innerHTML=
+    `<div class="big">${success?"SUCCESS":"FAILURE"}</div>`+
+    `<p>${actionLabel} succeeded with probability ${pct(successProb)}. `+
+    `${success?"Loss = 0.":"Loss = 100."}</p>`+
+    `<p>Manual capability: <b>${pct(before)} → ${pct(s)}</b>.</p>`;
+  $("loss").textContent=totalLoss;
+  $("skill").textContent=pct(s);
+  $("skillbar").style.width=pct(s);
+
+  if(t<T){
+    $("nextButton").textContent="Next round";
+    $("nextButton").classList.remove("hidden");
+  }else{
+    $("nextButton").textContent="See results";
+    $("nextButton").classList.remove("hidden");
+  }
+}
+
+function addHistory(h){
+  const tr=document.createElement("tr");
+  tr.innerHTML=`<td>${h.t}</td><td>${h.available?"Available":"EMERGENCY"}</td><td>${pct(h.before)}</td><td>${h.label}</td><td>${h.success?"Success":"Failure"}</td><td>${h.loss}</td>`;
+  $("history").prepend(tr);
+}
+
+function nextRound(){
+  if(t>=T){showResults();return;}
+  t++;drawAvailability();render();
+}
+
+/* ---------- Dynamic program ----------
+At each state, availability is not known until the round begins.
+If unavailable, H is forced. If available, choose A or H.
+*/
+function solveDP(){
+  const memo=new Map(), pol=new Map(), manualMemo=new Map();
+
+  function V(t,skill){
+    skill=r2(skill);
+    if(t>T)return 0;
+    const key=`${t}|${skill}`;
+    if(memo.has(key))return memo.get(key);
+
+    const forced=expectedImmediate(skill,"H")+delta*V(t+1,nextSkill(skill,"H"));
+    const ca=expectedImmediate(skill,"A")+delta*V(t+1,nextSkill(skill,"A"));
+    const ch=expectedImmediate(skill,"H")+delta*V(t+1,nextSkill(skill,"H"));
+    const availBest=Math.min(ca,ch);
+    pol.set(key,ch<ca?"H":"A");
+
+    const value=q*forced+(1-q)*availBest;
+    memo.set(key,value);
+    return value;
+  }
+
+  function expectedManualCount(t,skill){
+    skill=r2(skill);
+    if(t>T)return 0;
+    const key=`${t}|${skill}`;
+    if(manualMemo.has(key))return manualMemo.get(key);
+    V(t,skill);
+    const a=pol.get(key);
+    const forcedNext=expectedManualCount(t+1,nextSkill(skill,"H"));
+    const chosenNext=expectedManualCount(t+1,nextSkill(skill,a));
+    // Count only voluntary H when automation is available; forced emergencies do not count.
+    const count=q*forcedNext+(1-q)*((a==="H"?1:0)+chosenNext);
+    manualMemo.set(key,count);
+    return count;
+  }
+
+  const value=V(1,s0);
+  const manualCount=expectedManualCount(1,s0);
+  return {value,manualCount,first:pol.get(`1|${r2(s0)}`),V,pol};
+}
+
+/* Evaluate the user's observed voluntary choices as a simple contingent policy:
+for rounds where the user actually faced availability, reuse that choice at the same
+round if that state is reached; otherwise default to automation. This is intentionally
+descriptive and is labeled as an approximation.
+*/
+function evaluateObservedPolicy(){
+  const memo=new Map();
+  function W(t,skill){
+    skill=r2(skill);
+    if(t>T)return 0;
+    const key=`${t}|${skill}`;
+    if(memo.has(key))return memo.get(key);
+
+    const forced=expectedImmediate(skill,"H")+W(t+1,nextSkill(skill,"H"));
+    const a=voluntaryPolicy[t] || "A";
+    const chosen=expectedImmediate(skill,a)+W(t+1,nextSkill(skill,a));
+    const value=q*forced+(1-q)*chosen;
+    memo.set(key,value);
+    return value;
+  }
+  return W(1,s0);
+}
+
+function showResults(){
+  $("game").classList.add("hidden");$("results").classList.remove("hidden");
+  const opt=solveDP();
+  const userExpected=evaluateObservedPolicy();
+
+  $("rLoss").textContent=totalLoss;
+  $("rManual").textContent=`${voluntaryManual}`;
+  $("rEmergencies").textContent=emergencies;
+  $("rEmergencyFailures").textContent=emergencyFailures;
+  $("rSkill").textContent=pct(s);
+
+  $("youManual").textContent=voluntaryManual;
+  $("optManual").textContent=opt.manualCount.toFixed(1);
+  $("youExpected").textContent=`${userExpected.toFixed(1)}*`;
+  $("optExpected").textContent=opt.value.toFixed(1);
+  $("youFirst").textContent=voluntaryPolicy[1] ? (voluntaryPolicy[1]==="H"?"Manual":"Automation") : "Emergency occurred";
+  $("optFirst").textContent=opt.first==="H"?"Manual":"Automation";
+
+  const relation=voluntaryManual<opt.manualCount-0.5?"less":voluntaryManual>opt.manualCount+0.5?"more":"about the same amount of";
+  $("interpretation").innerHTML=
+    `Under <b>${pct(q)} emergency risk</b>, you voluntarily practiced ${relation} manual control than the benchmark expects across possible emergency paths. `+
+    `Your realized loss was <b>${totalLoss}</b>, but this includes luck from both emergency timing and success/failure draws.`+
+    `<br><span class="small">*Your expected-policy loss is an approximate evaluation that reuses your observed round-level voluntary choices and defaults to Automation in rounds where an emergency prevented you from expressing a choice.</span>`;
+}
+
+function resetGame(){
+  $("game").classList.add("hidden");$("results").classList.add("hidden");$("intro").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
