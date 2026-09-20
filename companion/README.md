@@ -4,7 +4,7 @@ This directory contains the computational and interactive companion materials fo
 
 **When Should Humans Stay in the Loop? Maintaining Human Capability under Automation Risk**
 
-The current proposal is PS1 Version 2. Earlier Version 1 materials are retained to document the cumulative development of the project.
+The current proposal is PS1 Version 2.
 
 ## Version 2 research question
 
@@ -52,9 +52,6 @@ Contains selected outputs from the Version 2 computational benchmark, including 
 
 Contains the earlier Version 1 interactive artifact. It is retained as part of the project's revision history.
 
-### `src/` and `tests/`
-
-Contain supporting code and tests retained from the companion repository structure.
 
 ## Model assumptions
 
