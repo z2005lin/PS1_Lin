@@ -1,158 +1,91 @@
-# PS1 Technical Companion
+# PS1 Companion Materials
 
-This directory contains the technical and reproducibility materials for the PS1 project:
+This directory contains the computational and interactive companion materials for:
 
-**When Should Humans Take Over? Recent Errors and Authority under Imperfect Automation**
+**When Should Humans Stay in the Loop? Maintaining Human Capability under Automation Risk**
 
-The project studies whether recent automation error history changes human takeover decisions when current automation reliability, failure loss, and takeover cost remain fixed.
+The current proposal is PS1 Version 2. Earlier Version 1 materials are retained to document the cumulative development of the project.
 
-## Project Materials
+## Version 2 research question
 
-The main project materials in this directory are organized as follows:
+Version 2 studies when manual control is worth an immediate performance cost because practice can preserve human capability for future periods in which automation becomes unavailable.
 
-```text
-companion/
-├── hf_space/
-│   ├── index.html
-│   └── README.md
-├── notebooks/
-│   └── takeover_boundary_analysis.ipynb
-├── outputs/
-│   ├── economic_boundary.png
-│   └── synthetic_takeover_boundaries.png
-├── README.md
-└── requirements.txt
-```
+The computational benchmark treats human–automation allocation as a finite-horizon dynamic decision problem. Automation has a current performance advantage, but current allocation changes future human capability.
 
-The repository template also contains supporting development files and directories such as `src/`, `tests/`, and `requirements-dev.txt`. They are retained from the course template and are not part of the main computational analysis described below.
+## Directory structure
 
-## Google Colab Notebook
+### `hf_space_v2/`
 
-The main computational notebook is:
+Contains the Version 2 Hugging Face interactive game, **Stay in the Loop**.
 
-`notebooks/takeover_boundary_analysis.ipynb`
+The game implements a repeated human–automation allocation setting in which automation may become unavailable and human capability changes through practice or non-practice.
 
-Google Colab:
+Live artifact:
 
-https://colab.research.google.com/drive/1mM6bZV-yfjKA-C0pycUg5f_y0gOGNzTO?usp=sharing
+https://huggingface.co/spaces/dku-comsci-econ206-2026/StayInTheLoop
 
-The notebook implements the computational analysis used in the proposal. It:
+### `notebooks/`
 
-1. defines the expected-cost decision model;
-2. derives the economic takeover boundary;
-3. constructs matched Error and No Error scenarios;
-4. visualizes the economic benchmark;
-5. generates synthetic choices for a computational check;
-6. estimates Error and No Error takeover boundaries using logistic regression;
-7. compares the history effect at different distances from the economic boundary.
+Contains the computational notebooks used for the PS1 analysis.
 
-The expected cost of continued automation is:
+The Version 2 notebook implements:
 
-`EC_auto = (1 - p)L`
+- finite-horizon dynamic programming;
+- recurring automation-unavailability risk;
+- evolving human capability;
+- state-dependent allocation decisions;
+- a myopic baseline;
+- low- and high-risk comparisons;
+- capability-decay sensitivity analysis.
 
-The cost of takeover is:
+The main computational comparison uses per-period automation-unavailability probabilities of `q = 0.10` and `q = 0.30`.
 
-`EC_takeover = C`
+Colab:
 
-The economic takeover boundary is:
+https://colab.research.google.com/drive/1pYMvzjzWt6SDJ0sRKy97mxhMXL35MklZ?usp=sharing
 
-`p* = 1 - C/L`
+### `outputs/`
 
-With `L = 100` and `C = 20`, the notebook uses:
+Contains selected outputs from the Version 2 computational benchmark, including the main voluntary-practice comparison and sensitivity analysis.
 
-`p* = 0.80`
+### `hf_space/`
 
-The main comparison estimates separate takeover boundaries for the Error and No Error conditions and calculates:
+Contains the earlier Version 1 interactive artifact. It is retained as part of the project's revision history.
 
-`Delta p = p_hat_Error - p_hat_NoError`
+### `src/` and `tests/`
 
-## Dependencies
+Contain supporting code and tests retained from the companion repository structure.
 
-The notebook requires:
+## Model assumptions
 
-- NumPy
-- pandas
-- Matplotlib
-- scikit-learn
+The current Version 2 benchmark uses:
 
-The required packages are recorded in `requirements.txt`.
+- horizon: `T = 12`;
+- automation success probability: `p_A = 0.95`;
+- initial human capability: `s_1 = 0.88`;
+- failure loss: `L = 100`;
+- capability decrease after automation use: `0.04`;
+- capability increase after human control: `0.04`;
+- capability bounds: `[0.56, 0.92]`;
+- low automation-unavailability risk: `q = 0.10`;
+- high automation-unavailability risk: `q = 0.30`.
 
-Google Colab normally provides these packages by default. For local execution, install the dependencies with:
+These capability dynamics are synthetic modeling assumptions rather than empirical estimates.
 
-```bash
-pip install -r requirements.txt
-```
+## Computational interpretation
 
-## Reproduction Instructions
+The dynamic-programming benchmark minimizes expected cumulative loss over possible future paths. Forced human-control rounds caused by automation unavailability are distinguished from voluntary manual-practice rounds.
 
-The computational analysis uses a fixed random seed of `206`.
+The Hugging Face game represents one realized stochastic trajectory, whereas the notebook integrates over possible future paths. Realized game loss should therefore not be interpreted as policy quality.
 
-To reproduce the analysis:
+## Reproducibility
 
-1. Open the Google Colab link above.
-2. Select **Runtime → Restart session and run all**.
-3. Run all notebook cells from the beginning.
-4. Confirm that the notebook completes without execution errors.
-5. Inspect the generated scenario tables, boundary estimates, and figures.
+To reproduce the Version 2 computational analysis:
 
-No external dataset is required. Matched scenarios and synthetic behavioral choices are generated directly in the notebook.
+1. Open `notebooks/ps1_v2_dynamic_allocation.ipynb`.
+2. Install the dependencies listed in `requirements.txt`.
+3. Restart the runtime.
+4. Run all cells from beginning to end.
+5. Compare the generated results with the files in `outputs/`.
 
-## Actual Computational Outputs
-
-The `outputs/` directory contains two figures generated from the computational analysis.
-
-### `economic_boundary.png`
-
-This figure shows the expected-cost takeover boundary at `p* = 0.80`.
-
-Reliability below the boundary favors **Take Over** under expected-cost minimization, while reliability above the boundary favors **Keep Auto**.
-
-### `synthetic_takeover_boundaries.png`
-
-This figure shows the fitted takeover probabilities for the Error and No Error conditions in the synthetic computational check.
-
-The notebook also produces actual cell outputs including:
-
-- the matched scenario table;
-- synthetic choice summaries;
-- logistic regression estimates;
-- estimated Error and No Error takeover boundaries;
-- the estimated synthetic boundary shift.
-
-## Evidence Status and Limitations
-
-The economic boundary is a derived result from the expected-cost model. The tables, estimates, and figures are actual computational outputs produced by the notebook.
-
-The behavioral choices used in the boundary analysis are synthetic. They are generated from an assumed probability model only to verify that the computational procedure can recover an imposed recent-error effect.
-
-The synthetic results therefore do not establish that real people change their takeover behavior after an automation error. Testing this behavioral claim requires human choice data collected under matched Error and No Error conditions while current reliability, failure loss, and takeover cost remain fixed.
-
-## Hugging Face Interactive Demo
-
-The `hf_space/` directory contains the source files for the interactive **Trust or Take Over?** demo:
-
-- `hf_space/index.html` contains the interactive interface and game logic.
-- `hf_space/README.md` contains the Hugging Face Space configuration and documentation.
-
-Live demo:
-
-https://huggingface.co/spaces/dku-comsci-econ206-2026/TrustOrTakeOver
-
-The demo presents the same takeover problem in an interactive form. Players observe current reliability, failure loss, takeover cost, and recent history before choosing **Keep Auto** or **Take Over**.
-
-Benchmark information and decision analysis are hidden during play and shown only after all decisions are completed.
-
-The interactive demo uses a smaller scenario set for presentation, while the Colab notebook uses a denser reliability grid around the economic boundary for computational analysis.
-
-## Reproducibility Record
-
-- Main notebook: `notebooks/takeover_boundary_analysis.ipynb`
-- Environment: Google Colab
-- Random seed: `206`
-- Dependencies: `requirements.txt`
-- Computational outputs: `outputs/`
-- Interactive demo source: `hf_space/`
-- GitHub repository: https://github.com/z2005lin/PS1_Lin
-- Submitted commit: `[FINAL COMMIT HASH]`
-
-For the final fresh-run check, the Colab runtime was restarted and all notebook cells were executed sequentially from the beginning without external data or manual intermediate inputs.
+The repository records the code and artifacts used for the submitted PS1 version.
